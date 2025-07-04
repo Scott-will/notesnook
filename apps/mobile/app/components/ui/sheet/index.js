@@ -23,12 +23,9 @@ import { Platform, View } from "react-native";
 import ActionSheet from "react-native-actions-sheet";
 import useGlobalSafeAreaInsets from "../../../hooks/use-global-safe-area-insets";
 import { useSettingStore } from "../../../stores/use-setting-store";
-import { PremiumToast } from "../../premium/premium-toast";
-import { Toast } from "../../toast";
-import { useAppState } from "../../../hooks/use-app-state";
-import SettingsService from "../../../services/settings";
 import { useUserStore } from "../../../stores/use-user-store";
 import { getContainerBorder } from "../../../utils/colors";
+import { Toast } from "../../toast";
 
 /**
  *
@@ -151,11 +148,6 @@ const SheetWrapper = ({
         ExtraOverlayComponent={
           <>
             {overlay}
-            <PremiumToast
-              context="sheet"
-              close={() => fwdRef?.current?.hide()}
-              offset={50}
-            />
             <Toast context="local" />
           </>
         }
