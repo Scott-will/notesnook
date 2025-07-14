@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+import { hasPermission } from "../../types.js";
 import { getParentAttributes } from "../../utils/prosemirror.js";
 import { Node, mergeAttributes, wrappingInputRule } from "@tiptap/core";
 
@@ -82,6 +83,8 @@ export const OutlineList = Node.create<OutlineListOptions>({
       toggleOutlineList:
         () =>
         ({ chain }) => {
+          if (!hasPermission("toggleOutlineList")) return false;
+
           return chain()
             .toggleList(
               this.name,
@@ -105,22 +108,35 @@ export const OutlineList = Node.create<OutlineListOptions>({
   },
 
   addInputRules() {
-    return [
-      wrappingInputRule({
-        find: inputRegex,
-        type: this.type,
-        keepMarks: this.options.keepMarks,
-        keepAttributes: this.options.keepAttributes,
-        editor: this.editor,
-        getAttributes: () => {
-          return getParentAttributes(
-            this.editor,
-            this.options.keepMarks,
-            this.options.keepAttributes
-          );
-        }
-      })
-    ];
+    const inputRule = wrappingInputRule({
+      find: inputRegex,
+      type: this.type,
+      keepMarks: this.options.keepMarks,
+      keepAttributes: this.options.keepAttributes,
+      editor: this.editor,
+      getAttributes: () => {
+        return getParentAttributes(
+          this.editor,
+          this.options.keepMarks,
+          this.options.keepAttributes
+        );
+      }
+    });
+    const oldHandler = inputRule.handler;
+    inputRule.handler = ({ state, range, match, chain, can, commands }) => {
+      if (!hasPermission("toggleOutlineList", true)) return;
+
+      oldHandler({
+        state,
+        range,
+        match,
+        chain,
+        can,
+        commands
+      });
+    };
+
+    return [inputRule];
   },
   addNodeView() {
     return ({ node, HTMLAttributes }) => {

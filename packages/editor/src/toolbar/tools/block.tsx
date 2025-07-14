@@ -321,12 +321,7 @@ const uploadImageFromURLMobile = (editor: Editor): MenuItem => ({
         component: ({ onClick }) => (
           <ImageUploadPopup
             onInsert={(image) => {
-              editor
-                .requestPermission("insertImage")
-                ?.chain()
-                .focus()
-                .insertImage(image)
-                .run();
+              editor?.chain().focus().insertImage(image).run();
               onClick?.();
             }}
             onClose={() => {
@@ -349,12 +344,7 @@ const uploadImageFromURL = (editor: Editor): MenuItem => ({
       popup: (hide) => (
         <ImageUploadPopup
           onInsert={(image) => {
-            editor
-              .requestPermission("insertImage")
-              ?.chain()
-              .focus()
-              .insertImage(image)
-              .run();
+            editor?.chain().focus().insertImage(image).run();
             hide();
           }}
           onClose={hide}

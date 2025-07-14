@@ -40,6 +40,7 @@ import {
 import { Node as ProsemirrorNode } from "@tiptap/pm/model";
 import { TaskItemNode } from "../task-item/index.js";
 import { ListItem } from "../list-item/list-item.js";
+import { hasPermission } from "../../types.js";
 
 type TaskListStats = { checked: number; total: number };
 export type TaskListAttributes = {
@@ -120,6 +121,8 @@ export const TaskListNode = TaskList.extend({
       toggleTaskList:
         () =>
         ({ editor, chain, state, tr }) => {
+          if (!hasPermission("toggleTaskList")) return false;
+
           const { $from, $to } = state.selection;
 
           chain()
@@ -337,6 +340,8 @@ export const TaskListNode = TaskList.extend({
     });
     const oldHandler = inputRule.handler;
     inputRule.handler = ({ state, range, match, chain, can, commands }) => {
+      if (!hasPermission("toggleTaskList", true)) return;
+
       const $from = state.selection.$from;
       const parentNode = $from.node($from.depth - 1);
       if (parentNode.type.name === ListItem.name) {
