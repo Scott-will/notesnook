@@ -91,6 +91,7 @@ type Options = {
   eventsource?: EventSourceConstructor;
   fs: IFileStorage;
   compressor: () => Promise<ICompressor>;
+  maxNoteVersions: () => Promise<number | undefined>;
   batchSize: number;
 };
 
