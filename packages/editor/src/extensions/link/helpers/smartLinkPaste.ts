@@ -18,7 +18,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 import { Plugin, PluginKey } from "@tiptap/pm/state";
-import { find } from "linkifyjs";
 
 export function smartLinkPaste(): Plugin {
   return new Plugin({
@@ -29,30 +28,47 @@ export function smartLinkPaste(): Plugin {
         const htmlContent = clipboardData?.getData("text/html");
         const textContent = clipboardData?.getData("text/plain");
 
-        // If HTML already has links, let default behavior handle it
+        // Let browser handle real HTML links
         if (htmlContent && htmlContent.includes("<a ")) {
           console.log("HTML contains links, using default behavior");
           return false;
         }
 
         if (textContent) {
-          const links = find(textContent).filter((item) => item.isLink);
+          // Markdown link regex
+          const mdLinkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
 
-          if (links.length > 0) {
-            const { tr, selection } = view.state;
-            let pos = selection.from;
+          let match: RegExpExecArray | null;
+          const { schema } = view.state;
+          const { tr, selection } = view.state;
+          let pos = selection.from;
+          let lastIndex = 0;
 
-            links.forEach((link) => {
-              const linkMark = view.state.schema.marks.link.create({
-                href: link.href
-              });
-              const textNode = view.state.schema.text(link.value, [linkMark]);
-              tr.insert(pos, textNode);
-              pos += link.value.length;
-            });
+          while ((match = mdLinkRegex.exec(textContent)) !== null) {
+            const [full, label, href] = match;
 
+            if (match.index > lastIndex) {
+              const betweenText = textContent.slice(lastIndex, match.index);
+              tr.insert(pos, schema.text(betweenText));
+              pos += betweenText.length;
+            }
+
+            const linkMark = schema.marks.link.create({ href });
+            const linkText = schema.text(label, [linkMark]);
+            tr.insert(pos, linkText);
+            pos += label.length;
+
+            lastIndex = mdLinkRegex.lastIndex;
+          }
+
+          if (lastIndex < textContent.length) {
+            const remaining = textContent.slice(lastIndex);
+            tr.insert(pos, schema.text(remaining));
+          }
+
+          if (tr.docChanged) {
             view.dispatch(tr);
-            return true; //prevent default
+            return true;
           }
         }
 
